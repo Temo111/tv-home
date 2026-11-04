@@ -9,7 +9,7 @@
 if (window.TVHOME_STARTED) return;          // only one copy ever runs
 window.TVHOME_STARTED = true;
 
-var APP_VERSION = "2.1.0";
+var APP_VERSION = "2.2.0";
 
 /* ---------- Config: apps in priority order ----------
    id     = the webOS app id used to launch the app.
@@ -31,7 +31,6 @@ var APPS = [
 ];
 var PLACE = "Tynemouth", LAT = 55.0179, LON = -1.4254;
 var IDLE_MS = 2 * 60 * 1000;              // ambient mode after 2 minutes idle
-var PANEL_PHOTO_SECONDS = 20;             // main screen photo change
 var AMBIENT_PHOTO_SECONDS = 30;           // ambient photo change
 var AMBIENT_PHOTOS_FOR_MINUTES = 180;     // after this long in ambient, photos fade to black (clock only)
 var UPDATE_CHECK_MINUTES = 30;            // look for new hosted code this often (applied only while idle)
@@ -53,7 +52,7 @@ APPS.forEach(function (a) { diag.tiles[a.key] = { idFrom: "config", match: "-", 
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); }
 var root = document.getElementById("root");
 root.innerHTML =
-  '<div id="stage" class="' + (PHOTOS.length ? "with-photos" : "no-photos") + '">' +
+  '<div id="stage" class="no-photos">' +   // photos are shown only in photo mode (ambient)
   '  <div id="shift">' +
   '    <div class="top">' +
   '      <div class="left">' +
@@ -64,8 +63,7 @@ root.innerHTML =
   '          <div class="w-text"><div class="w-desc" id="wDesc">Loading weather</div><div class="w-place">' + esc(PLACE) + '</div></div>' +
   '        </div>' +
   '      </div>' +
-  '      <div class="panel" id="panel"></div>' +
-  '    </div>' +
+    '    </div>' +
   '    <div class="apps"><div class="row primary" id="row1"></div><div class="row secondary" id="row2"></div></div>' +
   '    <div class="hint"><b>1</b> to <b>0</b> open an app<i></i><b class="k blue"></b> photo mode<i></i><b class="k red"></b> diagnostics</div>' +
   '  </div>' +
@@ -328,7 +326,6 @@ function Slideshow(el, seconds, kenBurns, alwaysFill) {
     stop: function () { clearInterval(timer); timer = null; }
   };
 }
-var panelShow = Slideshow($("panel"), PANEL_PHOTO_SECONDS, false, true);   // panel: always fill and crop
 var ambShow = Slideshow($("amb-photos"), AMBIENT_PHOTO_SECONDS, true);
 if (PHOTOS.length) $("ambient").classList.add("has-photos");
 
@@ -350,12 +347,12 @@ function goAmbient() {
   ambOn = true; ambSince = Date.now(); moveAmbientInfo();
   $("ambient").classList.remove("sleep");
   $("ambient").classList.add("on");
-  panelShow.stop(); ambShow.start();
+  ambShow.start();
 }
 function resetIdle() { clearTimeout(idleT); idleT = setTimeout(goAmbient, IDLE_MS); }
 function wake() {
   var was = ambOn;
-  if (ambOn) { ambOn = false; $("ambient").classList.remove("on"); ambShow.stop(); panelShow.start(); }
+  if (ambOn) { ambOn = false; $("ambient").classList.remove("on"); ambShow.stop(); }
   resetIdle();
   return was;
 }
@@ -442,7 +439,6 @@ setInterval(checkForUpdate, UPDATE_CHECK_MINUTES * 60 * 1000); checkForUpdate();
 resetIdle();
 useMyIcons();
 resolveIds();
-panelShow.start();
 document.addEventListener("visibilitychange", function () {
   if (!document.hidden) { loadWeather(); wake(); }
 });
