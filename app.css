@@ -1,171 +1,111 @@
-/* Tom's TV Home: hosted styles (bundled copy in the app is the offline fallback) */
+/* Tom's TV Home: hosted styles, "Haar" design (bundled copy in the app is the offline fallback) */
 :root {
-  --bg: #07080b;
-  --tile: #12141a;
-  --tile-hi: #1b1e27;
-  --text: #e9ebf0;
-  --muted: #8a90a0;
+  --bg: #0b0c0c;          /* warm near-black */
+  --tile: #16181a;
+  --bone: #d8d4cb;        /* main text, about 80% white: kind to the OLED panel */
+  --muted: #8c8c86;
+  --faint: #5f605b;
+  --line: #2a2e2c;
+  --amber: #e2a15a;       /* daylight */
+  --dusk: #5e7f86;        /* night */
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; background: var(--bg); overflow: hidden; }
-body { font-family: "Outfit", "LG Smart UI", system-ui, sans-serif; color: var(--text); cursor: default; }
+body { font-family: "Instrument Sans", "Outfit", "LG Smart UI", system-ui, sans-serif; color: var(--bone); cursor: default;
+       font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
 #root { opacity: 0; transition: opacity .6s ease; }
 body.ready #root { opacity: 1; }
 
-/* Fixed 1920x1080 stage, scaled to fit any screen (TV is native 1920x1080) */
-#stage {
-  position: absolute; left: 50%; top: 50%;
-  width: 1920px; height: 1080px;
-  transform-origin: center center;
-  background: radial-gradient(1200px 700px at 85% -10%, #151a2a 0%, transparent 60%),
-              radial-gradient(900px 600px at -5% 110%, #141020 0%, transparent 60%),
-              var(--bg);
-  overflow: hidden;
-}
-#shift { position: absolute; inset: 0; transition: transform 4s ease; }
+/* Fixed 1920x1080 stage, scaled to fit (TV is native 1920x1080). Safe area: 80px sides, 60px top/bottom */
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center;
+         background: var(--bg); overflow: hidden; }
+#shift { position: absolute; inset: 0; transition: transform 4s ease, opacity 2s ease; }
+#stage.dim #shift { opacity: .6; }                 /* after a minute idle */
+#stage.night #shift { opacity: .75; }
+#stage.night.dim #shift { opacity: .5; }
 
-/* Header: clock, date and weather on the left, photo panel on the right */
-.top { position: absolute; left: 120px; right: 120px; top: 80px; height: 420px; }
-.left { position: absolute; left: 0; top: 10px; }
-.clock { font-weight: 200; font-size: 190px; line-height: .85; letter-spacing: -6px; }
-.date { margin-top: 26px; font-size: 38px; font-weight: 300; color: var(--muted); }
-.weather { margin-top: 34px; display: flex; align-items: center; gap: 28px; }
-.w-now { display: flex; align-items: center; gap: 16px; }
-.w-icon { font-size: 64px; line-height: 1; }
-.w-temp { font-size: 80px; font-weight: 200; letter-spacing: -2px; line-height: 1; }
-.w-desc { font-size: 30px; font-weight: 300; color: var(--muted); }
-.w-place { margin-top: 4px; font-size: 22px; color: #5d6372; letter-spacing: 3px; text-transform: uppercase; }
+/* Clock and date */
+.clock { position: absolute; left: 80px; top: 52px; font-size: 150px; font-weight: 400; letter-spacing: -.035em; line-height: 1; }
+.date { position: absolute; left: 84px; top: 222px; font-size: 36px; color: var(--muted); }
 
-.panel {
-  position: absolute; right: 0; top: 0; width: 800px; height: 432px;
-  border-radius: 24px; overflow: hidden; background: #0d0f14;
-  box-shadow: 0 30px 70px rgba(0,0,0,.5);
-  border: 2px solid rgba(255,255,255,.05);
-}
+/* Weather */
+.wx { position: absolute; right: 80px; top: 66px; text-align: right; }
+.wx-t { font-size: 112px; line-height: 1; letter-spacing: -.03em; min-height: 112px; }
+.wx-c { font-size: 34px; font-weight: 500; margin-top: 14px; }
+.wx-d { font-size: 28px; color: var(--muted); margin-top: 8px; }
 
-/* Without photos: the original layout, weather on the right */
-.no-photos .panel { display: none; }
-.no-photos .top { height: auto; display: flex; justify-content: space-between; align-items: flex-end; top: 90px; }
-.no-photos .left { position: static; }
-.no-photos .weather { position: absolute; right: 0; bottom: 0; margin: 0; display: block; text-align: right; }
-.no-photos .w-now { justify-content: flex-end; gap: 22px; }
-.no-photos .w-icon { font-size: 88px; }
-.no-photos .w-temp { font-size: 110px; letter-spacing: -3px; }
-.no-photos .w-desc { margin-top: 18px; font-size: 34px; }
-.no-photos .w-place { margin-top: 6px; font-size: 26px; }
+/* The daylight line: today's sunrise to sunset in Tynemouth, with the sun moving along it */
+.sky { position: absolute; left: 80px; width: 1760px; top: 392px; height: 60px; }
+.sky-base { position: absolute; left: 0; right: 0; top: 30px; height: 2px; background: var(--line); }
+.sky-day { position: absolute; top: 29px; height: 4px; border-radius: 2px;
+           background: linear-gradient(90deg, rgba(226,161,90,.25), var(--amber) 30%, var(--amber) 70%, rgba(226,161,90,.25));
+           transition: background .6s ease; }
+.sky-sun { position: absolute; top: 13px; width: 36px; height: 18px; border-radius: 36px 36px 0 0; background: var(--amber);
+           transform: translateX(-50%); box-shadow: 0 0 28px rgba(226,161,90,.35); transition: left 2s ease; }
+.sky-lab { position: absolute; top: 44px; font-size: 22px; color: var(--faint); transform: translateX(-50%); }
+.sky.night .sky-day { background: rgba(94,127,134,.35); }
+.sky.night .sky-sun { width: 12px; height: 12px; top: 25px; border-radius: 50%; background: var(--dusk); box-shadow: 0 0 18px rgba(94,127,134,.45); }
 
-/* Slideshow layers (used by the panel and by ambient mode) */
-.ph-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 3s ease; overflow: hidden; }
-.ph-layer.on { opacity: 1; }
-/* blurred copy behind portrait photos; drawn small then scaled up so it is cheap for the TV */
-.ph-bg {
-  position: absolute; left: 0; top: 0; width: 10%; height: 10%;
-  background-size: cover; background-position: center;
-  filter: blur(3px) brightness(.45); transform: scale(10.4); transform-origin: 0 0;
-}
-.ph-fg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.ph-fg.cover { object-fit: cover; object-position: 50% 35%; }   /* faces sit in the upper part of most photos */
-.ph-fg.contain { object-fit: contain; }
-
-/* Tiles: calm dark cards with white logos; the selected one fills with its brand colour */
-.apps { position: absolute; left: 120px; right: 120px; bottom: 104px; }
-.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 30px; }
-.row + .row { margin-top: 30px; }
-.tile {
-  position: relative; border-radius: 24px; background: var(--tile);
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 28px 32px; overflow: hidden;
-  transition: transform .2s ease, background .25s ease, box-shadow .2s ease, border-color .2s ease;
-  border: 2px solid rgba(255,255,255,.05);
-}
-.row.primary .tile { height: 236px; }
-.row.secondary .tile { height: 150px; }
-/* faint brand glow at rest, so each tile still has its own colour */
-.tile::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(420px 200px at 50% 130%, var(--c), transparent 70%);
-  opacity: .16; transition: opacity .25s ease;
-}
-.tile .name { position: relative; z-index: 1; font-weight: 600; letter-spacing: -.5px; }
-.row.primary .name { font-size: 46px; }
-.row.secondary .name { font-size: 34px; }
-.tile .num { position: absolute; top: 18px; right: 22px; z-index: 2; font-size: 20px; color: rgba(255,255,255,.28); font-weight: 400; }
-.tile.focus {
-  transform: scale(1.07);
-  background: linear-gradient(150deg, var(--f), var(--f) 45%, rgba(0,0,0,.35) 140%), var(--f);
-  border-color: rgba(255,255,255,.9);
-  box-shadow: 0 28px 60px rgba(0,0,0,.65), 0 0 60px -10px var(--f);
-}
-.tile.focus::after { opacity: 0; }
-.tile.focus .num { color: rgba(255,255,255,.75); }
-
-/* logo inside a tile */
-.tile .logo {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--z, 1));
-  max-width: 58%; max-height: 42%; object-fit: contain; z-index: 1;
-}
-.row.secondary .tile .logo { max-height: 44%; max-width: 50%; }
-.tile.mono .logo { filter: brightness(0) invert(1); opacity: .92; }
-.tile.focus.mono .logo { opacity: 1; }
+/* Tiles: two even rows of five, Apple's TV grid (5 x 320px + 4 x 40px = 1760px) */
+.grid { position: absolute; left: 80px; top: 540px; display: grid; grid-template-columns: repeat(5, 320px); gap: 40px; }
+.tile { position: relative; width: 320px; height: 180px; border-radius: 22px; background: var(--tile);
+        border: 1px solid rgba(255,255,255,.05); display: flex; align-items: center; justify-content: center;
+        transition: transform .16s cubic-bezier(.2,.8,.2,1), background .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.tile .name { font-size: 38px; font-weight: 600; letter-spacing: -.02em; color: var(--bone); opacity: .82; }
+.tile .logo { max-width: var(--w, 150px); max-height: var(--h, 56px); object-fit: contain; transform: scale(var(--z, 1)); }
+.tile.has-icon .name { display: none; }
+.tile.mono .logo { filter: brightness(0) invert(.85); opacity: .82; }
 .tile.tv-icon { background: var(--icon-bg, var(--tile)); }
-.tile.tv-icon .logo { max-width: 78%; max-height: 72%; transform: translate(-50%, -50%); }
-.tile.has-icon .name { opacity: 0; }
-
-.hint { position: absolute; left: 120px; bottom: 42px; font-size: 24px; color: #6b7183; display: flex; align-items: center; gap: 10px; }
-.hint b { color: #a3a9b8; font-weight: 600; }
-.hint i { width: 6px; height: 6px; border-radius: 50%; background: #3a3f4c; margin: 0 12px; }
-.hint .k { width: 22px; height: 22px; border-radius: 6px; display: inline-block; }
-.hint .k.blue { background: #2f6bff; }
-.hint .k.red { background: #e5303a; }
+.tile.tv-icon .logo { max-width: 78%; max-height: 72%; transform: none; }
+.tile.focus { transform: scale(1.07) translateY(-4px); background: var(--fc); border: 2px solid rgba(216,212,203,.7);
+              box-shadow: 0 26px 52px rgba(0,0,0,.6); }
+.tile.focus .name { opacity: 1; }
+.tile.focus.mono .logo { filter: brightness(0) invert(.93); opacity: 1; }
 
 /* Toast */
-#toast {
-  position: absolute; left: 50%; top: 60px; transform: translateX(-50%) translateY(-30px);
-  background: #1d2130; color: var(--text); padding: 22px 40px; border-radius: 999px;
-  font-size: 30px; opacity: 0; transition: all .3s ease; z-index: 50; white-space: nowrap;
-}
+#toast { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%) translateY(30px);
+         background: #1f2221; color: var(--bone); padding: 18px 36px; border-radius: 999px; font-size: 30px;
+         opacity: 0; transition: all .3s ease; z-index: 50; white-space: nowrap; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* Ambient mode: dark, slow, always moving (OLED burn-in safe) */
-#ambient {
-  position: absolute; inset: 0; background: #000; z-index: 30;
-  opacity: 0; pointer-events: none; transition: opacity 2.5s ease;
-}
+/* Photo mode */
+#ambient { position: absolute; inset: 0; background: #000; z-index: 30; opacity: 0; pointer-events: none; transition: opacity 2.5s ease; }
 #ambient.on { opacity: 1; pointer-events: auto; }
-#amb-orbs, #amb-photos { position: absolute; inset: 0; transition: opacity 4s ease; }
-#ambient.has-photos #amb-orbs { display: none; }
-#amb-photos .ph-layer { transition: opacity 4s ease; }
-#amb-photos .ph-fg { filter: brightness(.72); }
-#ambient.sleep #amb-photos, #ambient.sleep #amb-orbs { opacity: 0; }
-/* slow drift and zoom so no part of a photo sits still */
-#amb-photos .kb .ph-fg { animation-duration: 40s; animation-timing-function: linear; animation-fill-mode: both; }
-#amb-photos .kb1 .ph-fg { animation-name: kb1; }
-#amb-photos .kb2 .ph-fg { animation-name: kb2; }
-@keyframes kb1 { from { transform: scale(1.02) translate(-12px, -8px); } to { transform: scale(1.10) translate(14px, 10px); } }
-@keyframes kb2 { from { transform: scale(1.10) translate(12px, -10px); } to { transform: scale(1.02) translate(-14px, 8px); } }
-
-.orb { position: absolute; width: 900px; height: 900px; border-radius: 50%; filter: blur(140px); opacity: .22; }
-.orb.a { background: #2b3f8f; animation: driftA 90s ease-in-out infinite alternate; }
-.orb.b { background: #6b2b6e; animation: driftB 120s ease-in-out infinite alternate; }
-.orb.c { background: #1f6b5c; animation: driftC 105s ease-in-out infinite alternate; }
-@keyframes driftA { from { transform: translate(-200px, -200px); } to { transform: translate(1100px, 400px); } }
-@keyframes driftB { from { transform: translate(1300px, 500px); } to { transform: translate(100px, -100px); } }
-@keyframes driftC { from { transform: translate(600px, 700px); } to { transform: translate(900px, -300px); } }
-#amb-info { position: absolute; z-index: 2; transition: left 6s ease, top 6s ease; color: rgba(255,255,255,.6); text-shadow: 0 2px 18px rgba(0,0,0,.8); }
-#amb-clock { font-size: 120px; font-weight: 200; letter-spacing: -3px; line-height: 1; }
-#amb-sub { font-size: 30px; font-weight: 300; margin-top: 12px; color: rgba(255,255,255,.45); }
+#amb-photos { position: absolute; inset: 0; background: var(--bg); transition: opacity 4s ease; }
+#ambient.sleep #amb-photos, #ambient.sleep .amb-scrim { opacity: 0; }
+.ph-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 2.5s ease-in-out; filter: brightness(.85); }
+#stage.night .ph-layer { filter: brightness(.55); }
+.ph-layer.on { opacity: 1; }
+.ph-one { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ph-one.cover { object-fit: cover; object-position: 50% 35%; }
+.ph-one.contain { object-fit: contain; }
+.ph-pair { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); display: flex; gap: 24px; }
+.ph-pair img { width: 720px; height: 960px; object-fit: cover; object-position: 50% 35%; border-radius: 6px; }
+/* slow drift and zoom so nothing sits still */
+.ph-layer.kb1 > * { animation: kb1 30s linear both; }
+.ph-layer.kb2 > * { animation: kb2 30s linear both; }
+.ph-layer.kb1 > .ph-pair, .ph-layer.kb2 > .ph-pair { animation-name: kbp; }
+@keyframes kb1 { from { transform: scale(1.00); } to { transform: scale(1.04) translate(10px, 6px); } }
+@keyframes kb2 { from { transform: scale(1.04) translate(-10px, 6px); } to { transform: scale(1.00); } }
+@keyframes kbp { from { transform: translateX(-50%) scale(1.00); } to { transform: translateX(-50%) scale(1.03); } }
+.amb-scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 380px; background: linear-gradient(0deg, rgba(0,0,0,.6), transparent); transition: opacity 4s ease; }
+/* small clock, kept low and away from faces; swaps corners every few minutes */
+#amb-info { position: absolute; left: 96px; bottom: 84px; color: rgba(232,229,222,.8); transition: transform 6s ease, opacity .9s ease; }
+#amb-info.right { left: auto; right: 96px; text-align: right; }
+#amb-info.fade { opacity: 0; }
+#amb-clock { font-size: 96px; line-height: 1; letter-spacing: -.03em; }
+#amb-sub { font-size: 30px; margin-top: 10px; color: rgba(232,229,222,.6); }
+#stage.night #amb-info { color: rgba(232,229,222,.55); }
+#ambient.sleep #amb-info { color: rgba(232,229,222,.25); }
 
 /* Diagnostics overlay (red button) */
-#diag {
-  position: absolute; inset: 40px; z-index: 60; background: rgba(8,9,13,.97);
-  border: 2px solid #2a2f3d; border-radius: 20px; padding: 36px 44px;
-  overflow: hidden; display: none; font-size: 22px; color: #d5d8e0;
-}
+#diag { position: absolute; inset: 40px; z-index: 60; background: rgba(11,12,12,.97); border: 2px solid var(--line);
+        border-radius: 20px; padding: 36px 44px; overflow: hidden; display: none; font-size: 22px; color: var(--bone); }
 #diag.on { display: block; }
 #diag h1 { font-size: 40px; font-weight: 600; }
-#diag h2 { font-size: 28px; font-weight: 600; margin: 26px 0 10px; color: #fff; }
-#diag .d-help { color: #8a90a0; margin-top: 6px; }
-#diag table { border-collapse: collapse; width: 100%; table-layout: auto; }
-#diag td { padding: 5px 14px 5px 0; vertical-align: top; word-break: break-all; border-bottom: 1px solid #1c2029; }
-#diag tr.head td { color: #8a90a0; }
+#diag h2 { font-size: 28px; font-weight: 600; margin: 26px 0 10px; }
+#diag .d-help { color: var(--muted); margin-top: 6px; }
+#diag table { border-collapse: collapse; width: 100%; }
+#diag td { padding: 5px 14px 5px 0; vertical-align: top; word-break: break-all; border-bottom: 1px solid #1c1f1e; }
+#diag tr.head td { color: var(--muted); }
 #diag tr.bad td { color: #ff8a80; }
