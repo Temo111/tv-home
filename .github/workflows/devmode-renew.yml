@@ -1,0 +1,42 @@
+name: Keep TV Developer Mode alive
+
+# Resets the LG Developer Mode session timer every 12 hours so the Home app
+# is not removed from the TV. The token lives only in the DEVMODE_TOKEN secret.
+on:
+  schedule:
+    - cron: "23 4,16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write    # only used to keep this schedule switched on
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Reset the Developer Mode session timer
+        env:
+          TOKEN: ${{ secrets.DEVMODE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN}" ]; then echo "::error::The DEVMODE_TOKEN secret is missing"; exit 1; fi
+          curl -fsS --retry 3 --retry-delay 20 --max-time 30 -G \
+            "https://developer.lge.com/secure/ResetDevModeSession.dev" \
+            --data-urlencode "sessionToken=${TOKEN}" -o reset.txt
+          echo "Reset reply: $(cat reset.txt)"
+          curl -fsS --retry 3 --retry-delay 20 --max-time 30 -G \
+            "https://developer.lge.com/secure/CheckDevModeSession.dev" \
+            --data-urlencode "sessionToken=${TOKEN}" -o check.txt || true
+          echo "Time left reply: $(cat check.txt 2>/dev/null || echo none)"
+          if ! grep -qi "success" reset.txt; then
+            echo "::error::LG did not confirm the reset. The token may have changed (for example after Developer Mode was switched off and on). Run 3-Refresh-renewal-token.bat on the PC."
+            exit 1
+          fi
+
+      - name: Keep this schedule switched on
+        # GitHub pauses scheduled workflows after 60 days with no repository activity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/devmode-renew.yml/enable"

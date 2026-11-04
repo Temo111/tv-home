@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Only these places may supply code, styles, pictures or data to this page -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' file: __REMOTE_ORIGIN__; style-src 'self' file: 'unsafe-inline' __REMOTE_ORIGIN__ https://fonts.googleapis.com; font-src 'self' file: https://fonts.gstatic.com; img-src 'self' file: data:; connect-src 'self' file: __REMOTE_ORIGIN__ https://api.open-meteo.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Tom's TV Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600&display=swap" rel="stylesheet">
+<style>html,body{margin:0;width:100%;height:100%;background:#07080b;overflow:hidden}</style>
+</head>
+<body>
+<div id="root"></div>
+<!-- Files bundled in the app on the TV (not in the public GitHub repo) -->
+<script src="photos/list.js"></script>
+<script src="icons/list.js"></script>
+<!-- Loads the live app code from GitHub Pages, or the built-in copy if offline -->
+<script src="loader.js"></script>
+</body>
+</html>

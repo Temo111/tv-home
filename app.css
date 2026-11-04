@@ -1,0 +1,166 @@
+/* Tom's TV Home: hosted styles (bundled copy in the app is the offline fallback) */
+:root {
+  --bg: #07080b;
+  --tile: #12141a;
+  --tile-hi: #1b1e27;
+  --text: #e9ebf0;
+  --muted: #8a90a0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: var(--bg); overflow: hidden; }
+body { font-family: "Outfit", "LG Smart UI", system-ui, sans-serif; color: var(--text); cursor: default; }
+#root { opacity: 0; transition: opacity .6s ease; }
+body.ready #root { opacity: 1; }
+
+/* Fixed 1920x1080 stage, scaled to fit any screen (TV is native 1920x1080) */
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform-origin: center center;
+  background: radial-gradient(1200px 700px at 85% -10%, #151a2a 0%, transparent 60%),
+              radial-gradient(900px 600px at -5% 110%, #141020 0%, transparent 60%),
+              var(--bg);
+  overflow: hidden;
+}
+#shift { position: absolute; inset: 0; transition: transform 4s ease; }
+
+/* Header: clock, date and weather on the left, photo panel on the right */
+.top { position: absolute; left: 120px; right: 120px; top: 80px; height: 420px; }
+.left { position: absolute; left: 0; top: 10px; }
+.clock { font-weight: 200; font-size: 210px; line-height: .85; letter-spacing: -6px; }
+.date { margin-top: 26px; font-size: 38px; font-weight: 300; color: var(--muted); }
+.weather { margin-top: 34px; display: flex; align-items: center; gap: 28px; }
+.w-now { display: flex; align-items: center; gap: 16px; }
+.w-icon { font-size: 64px; line-height: 1; }
+.w-temp { font-size: 80px; font-weight: 200; letter-spacing: -2px; line-height: 1; }
+.w-desc { font-size: 30px; font-weight: 300; color: var(--muted); }
+.w-place { margin-top: 4px; font-size: 22px; color: #5d6372; letter-spacing: 3px; text-transform: uppercase; }
+
+.panel {
+  position: absolute; right: 0; top: 0; width: 740px; height: 416px;
+  border-radius: 26px; overflow: hidden; background: #0d0f14;
+  box-shadow: 0 30px 70px rgba(0,0,0,.5);
+  border: 2px solid rgba(255,255,255,.05);
+}
+
+/* Without photos: the original layout, weather on the right */
+.no-photos .panel { display: none; }
+.no-photos .top { height: auto; display: flex; justify-content: space-between; align-items: flex-end; top: 90px; }
+.no-photos .left { position: static; }
+.no-photos .weather { position: absolute; right: 0; bottom: 0; margin: 0; display: block; text-align: right; }
+.no-photos .w-now { justify-content: flex-end; gap: 22px; }
+.no-photos .w-icon { font-size: 88px; }
+.no-photos .w-temp { font-size: 110px; letter-spacing: -3px; }
+.no-photos .w-desc { margin-top: 18px; font-size: 34px; }
+.no-photos .w-place { margin-top: 6px; font-size: 26px; }
+
+/* Slideshow layers (used by the panel and by ambient mode) */
+.ph-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 3s ease; overflow: hidden; }
+.ph-layer.on { opacity: 1; }
+/* blurred copy behind portrait photos; drawn small then scaled up so it is cheap for the TV */
+.ph-bg {
+  position: absolute; left: 0; top: 0; width: 10%; height: 10%;
+  background-size: cover; background-position: center;
+  filter: blur(3px) brightness(.45); transform: scale(10.4); transform-origin: 0 0;
+}
+.ph-fg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ph-fg.cover { object-fit: cover; }
+.ph-fg.contain { object-fit: contain; }
+
+/* Tiles */
+.apps { position: absolute; left: 120px; right: 120px; bottom: 110px; }
+.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 34px; }
+.row + .row { margin-top: 34px; }
+.tile {
+  position: relative; border-radius: 26px; background: var(--tile);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 30px 34px; overflow: hidden;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+  border: 2px solid rgba(255,255,255,.04);
+}
+.row.primary .tile { height: 230px; }
+.row.secondary .tile { height: 150px; }
+.tile::before {
+  content: ""; position: absolute; left: 0; top: 0; right: 0; height: 8px;
+  background: var(--c); opacity: .9;
+}
+.tile::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(500px 220px at 20% 120%, var(--c), transparent 70%);
+  opacity: .14; transition: opacity .18s ease;
+}
+.tile .name { position: relative; z-index: 1; font-weight: 600; letter-spacing: -.5px; }
+.row.primary .name { font-size: 46px; }
+.row.secondary .name { font-size: 34px; }
+.tile .num { position: absolute; top: 26px; right: 30px; z-index: 1; font-size: 24px; color: #4b5060; font-weight: 400; }
+.tile.focus {
+  transform: scale(1.07); background: var(--tile-hi);
+  border-color: rgba(255,255,255,.85);
+  box-shadow: 0 30px 70px rgba(0,0,0,.6), 0 0 0 6px rgba(255,255,255,.08);
+}
+.tile.focus::after { opacity: .35; }
+.tile.focus .num { color: #9aa0b0; }
+
+/* Tile showing a real app icon: icon centred on the app's own colour */
+.tile.has-icon { background: var(--icon-bg, var(--tile)); }
+.tile .logo {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  max-width: 78%; max-height: 72%; object-fit: contain; z-index: 1;
+}
+.tile.has-icon .name { opacity: 0; }
+.tile.has-icon::before, .tile.has-icon::after { display: none; }
+.tile.has-icon .num { z-index: 2; color: rgba(255,255,255,.8); text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+
+.hint { position: absolute; left: 120px; bottom: 44px; font-size: 24px; color: #4b5060; }
+
+/* Toast */
+#toast {
+  position: absolute; left: 50%; top: 60px; transform: translateX(-50%) translateY(-30px);
+  background: #1d2130; color: var(--text); padding: 22px 40px; border-radius: 999px;
+  font-size: 30px; opacity: 0; transition: all .3s ease; z-index: 50; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Ambient mode: dark, slow, always moving (OLED burn-in safe) */
+#ambient {
+  position: absolute; inset: 0; background: #000; z-index: 30;
+  opacity: 0; pointer-events: none; transition: opacity 2.5s ease;
+}
+#ambient.on { opacity: 1; pointer-events: auto; }
+#amb-orbs, #amb-photos { position: absolute; inset: 0; transition: opacity 4s ease; }
+#ambient.has-photos #amb-orbs { display: none; }
+#amb-photos .ph-layer { transition: opacity 4s ease; }
+#amb-photos .ph-fg { filter: brightness(.72); }
+#ambient.sleep #amb-photos, #ambient.sleep #amb-orbs { opacity: 0; }
+/* slow drift and zoom so no part of a photo sits still */
+#amb-photos .kb .ph-fg { animation-duration: 40s; animation-timing-function: linear; animation-fill-mode: both; }
+#amb-photos .kb1 .ph-fg { animation-name: kb1; }
+#amb-photos .kb2 .ph-fg { animation-name: kb2; }
+@keyframes kb1 { from { transform: scale(1.02) translate(-12px, -8px); } to { transform: scale(1.10) translate(14px, 10px); } }
+@keyframes kb2 { from { transform: scale(1.10) translate(12px, -10px); } to { transform: scale(1.02) translate(-14px, 8px); } }
+
+.orb { position: absolute; width: 900px; height: 900px; border-radius: 50%; filter: blur(140px); opacity: .22; }
+.orb.a { background: #2b3f8f; animation: driftA 90s ease-in-out infinite alternate; }
+.orb.b { background: #6b2b6e; animation: driftB 120s ease-in-out infinite alternate; }
+.orb.c { background: #1f6b5c; animation: driftC 105s ease-in-out infinite alternate; }
+@keyframes driftA { from { transform: translate(-200px, -200px); } to { transform: translate(1100px, 400px); } }
+@keyframes driftB { from { transform: translate(1300px, 500px); } to { transform: translate(100px, -100px); } }
+@keyframes driftC { from { transform: translate(600px, 700px); } to { transform: translate(900px, -300px); } }
+#amb-info { position: absolute; z-index: 2; transition: left 6s ease, top 6s ease; color: rgba(255,255,255,.6); text-shadow: 0 2px 18px rgba(0,0,0,.8); }
+#amb-clock { font-size: 120px; font-weight: 200; letter-spacing: -3px; line-height: 1; }
+#amb-sub { font-size: 30px; font-weight: 300; margin-top: 12px; color: rgba(255,255,255,.45); }
+
+/* Diagnostics overlay (red button) */
+#diag {
+  position: absolute; inset: 40px; z-index: 60; background: rgba(8,9,13,.97);
+  border: 2px solid #2a2f3d; border-radius: 20px; padding: 36px 44px;
+  overflow: hidden; display: none; font-size: 22px; color: #d5d8e0;
+}
+#diag.on { display: block; }
+#diag h1 { font-size: 40px; font-weight: 600; }
+#diag h2 { font-size: 28px; font-weight: 600; margin: 26px 0 10px; color: #fff; }
+#diag .d-help { color: #8a90a0; margin-top: 6px; }
+#diag table { border-collapse: collapse; width: 100%; table-layout: auto; }
+#diag td { padding: 5px 14px 5px 0; vertical-align: top; word-break: break-all; border-bottom: 1px solid #1c2029; }
+#diag tr.head td { color: #8a90a0; }
+#diag tr.bad td { color: #ff8a80; }

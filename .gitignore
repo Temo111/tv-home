@@ -1,0 +1,9 @@
+# Personal files: never published
+photos-inbox/*
+!photos-inbox/README.txt
+my-icons/*
+!my-icons/README.txt
+build/
+settings.json
+*.ipk
+*.zip
