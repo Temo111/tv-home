@@ -27,7 +27,7 @@ body.ready #root { opacity: 1; }
 /* Header: clock, date and weather on the left, photo panel on the right */
 .top { position: absolute; left: 120px; right: 120px; top: 80px; height: 420px; }
 .left { position: absolute; left: 0; top: 10px; }
-.clock { font-weight: 200; font-size: 210px; line-height: .85; letter-spacing: -6px; }
+.clock { font-weight: 200; font-size: 190px; line-height: .85; letter-spacing: -6px; }
 .date { margin-top: 26px; font-size: 38px; font-weight: 300; color: var(--muted); }
 .weather { margin-top: 34px; display: flex; align-items: center; gap: 28px; }
 .w-now { display: flex; align-items: center; gap: 16px; }
@@ -37,8 +37,8 @@ body.ready #root { opacity: 1; }
 .w-place { margin-top: 4px; font-size: 22px; color: #5d6372; letter-spacing: 3px; text-transform: uppercase; }
 
 .panel {
-  position: absolute; right: 0; top: 0; width: 740px; height: 416px;
-  border-radius: 26px; overflow: hidden; background: #0d0f14;
+  position: absolute; right: 0; top: 0; width: 800px; height: 432px;
+  border-radius: 24px; overflow: hidden; background: #0d0f14;
   box-shadow: 0 30px 70px rgba(0,0,0,.5);
   border: 2px solid rgba(255,255,255,.05);
 }
@@ -64,54 +64,59 @@ body.ready #root { opacity: 1; }
   filter: blur(3px) brightness(.45); transform: scale(10.4); transform-origin: 0 0;
 }
 .ph-fg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.ph-fg.cover { object-fit: cover; }
+.ph-fg.cover { object-fit: cover; object-position: 50% 35%; }   /* faces sit in the upper part of most photos */
 .ph-fg.contain { object-fit: contain; }
 
-/* Tiles */
-.apps { position: absolute; left: 120px; right: 120px; bottom: 110px; }
-.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 34px; }
-.row + .row { margin-top: 34px; }
+/* Tiles: calm dark cards with white logos; the selected one fills with its brand colour */
+.apps { position: absolute; left: 120px; right: 120px; bottom: 104px; }
+.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 30px; }
+.row + .row { margin-top: 30px; }
 .tile {
-  position: relative; border-radius: 26px; background: var(--tile);
+  position: relative; border-radius: 24px; background: var(--tile);
   display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 30px 34px; overflow: hidden;
-  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
-  border: 2px solid rgba(255,255,255,.04);
+  padding: 28px 32px; overflow: hidden;
+  transition: transform .2s ease, background .25s ease, box-shadow .2s ease, border-color .2s ease;
+  border: 2px solid rgba(255,255,255,.05);
 }
-.row.primary .tile { height: 230px; }
+.row.primary .tile { height: 236px; }
 .row.secondary .tile { height: 150px; }
-.tile::before {
-  content: ""; position: absolute; left: 0; top: 0; right: 0; height: 8px;
-  background: var(--c); opacity: .9;
-}
+/* faint brand glow at rest, so each tile still has its own colour */
 .tile::after {
-  content: ""; position: absolute; inset: 0;
-  background: radial-gradient(500px 220px at 20% 120%, var(--c), transparent 70%);
-  opacity: .14; transition: opacity .18s ease;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(420px 200px at 50% 130%, var(--c), transparent 70%);
+  opacity: .16; transition: opacity .25s ease;
 }
 .tile .name { position: relative; z-index: 1; font-weight: 600; letter-spacing: -.5px; }
 .row.primary .name { font-size: 46px; }
 .row.secondary .name { font-size: 34px; }
-.tile .num { position: absolute; top: 26px; right: 30px; z-index: 1; font-size: 24px; color: #4b5060; font-weight: 400; }
+.tile .num { position: absolute; top: 18px; right: 22px; z-index: 2; font-size: 20px; color: rgba(255,255,255,.28); font-weight: 400; }
 .tile.focus {
-  transform: scale(1.07); background: var(--tile-hi);
-  border-color: rgba(255,255,255,.85);
-  box-shadow: 0 30px 70px rgba(0,0,0,.6), 0 0 0 6px rgba(255,255,255,.08);
+  transform: scale(1.07);
+  background: linear-gradient(150deg, var(--f), var(--f) 45%, rgba(0,0,0,.35) 140%), var(--f);
+  border-color: rgba(255,255,255,.9);
+  box-shadow: 0 28px 60px rgba(0,0,0,.65), 0 0 60px -10px var(--f);
 }
-.tile.focus::after { opacity: .35; }
-.tile.focus .num { color: #9aa0b0; }
+.tile.focus::after { opacity: 0; }
+.tile.focus .num { color: rgba(255,255,255,.75); }
 
-/* Tile showing a real app icon: icon centred on the app's own colour */
-.tile.has-icon { background: var(--icon-bg, var(--tile)); }
+/* logo inside a tile */
 .tile .logo {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  max-width: 78%; max-height: 72%; object-fit: contain; z-index: 1;
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--z, 1));
+  max-width: 58%; max-height: 42%; object-fit: contain; z-index: 1;
 }
+.row.secondary .tile .logo { max-height: 44%; max-width: 50%; }
+.tile.mono .logo { filter: brightness(0) invert(1); opacity: .92; }
+.tile.focus.mono .logo { opacity: 1; }
+.tile.tv-icon { background: var(--icon-bg, var(--tile)); }
+.tile.tv-icon .logo { max-width: 78%; max-height: 72%; transform: translate(-50%, -50%); }
 .tile.has-icon .name { opacity: 0; }
-.tile.has-icon::before, .tile.has-icon::after { display: none; }
-.tile.has-icon .num { z-index: 2; color: rgba(255,255,255,.8); text-shadow: 0 2px 6px rgba(0,0,0,.6); }
 
-.hint { position: absolute; left: 120px; bottom: 44px; font-size: 24px; color: #4b5060; }
+.hint { position: absolute; left: 120px; bottom: 42px; font-size: 24px; color: #6b7183; display: flex; align-items: center; gap: 10px; }
+.hint b { color: #a3a9b8; font-weight: 600; }
+.hint i { width: 6px; height: 6px; border-radius: 50%; background: #3a3f4c; margin: 0 12px; }
+.hint .k { width: 22px; height: 22px; border-radius: 6px; display: inline-block; }
+.hint .k.blue { background: #2f6bff; }
+.hint .k.red { background: #e5303a; }
 
 /* Toast */
 #toast {

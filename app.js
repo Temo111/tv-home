@@ -9,7 +9,7 @@
 if (window.TVHOME_STARTED) return;          // only one copy ever runs
 window.TVHOME_STARTED = true;
 
-var APP_VERSION = "2.0.0";
+var APP_VERSION = "2.1.0";
 
 /* ---------- Config: apps in priority order ----------
    id     = the webOS app id used to launch the app.
@@ -18,16 +18,16 @@ var APP_VERSION = "2.0.0";
    key    = file name to use for a home-made icon in the my-icons folder
             (for example my-icons/netflix.png). */
 var APPS = [
-  { name: "Netflix",     key: "netflix",     id: "netflix",                    match: ["netflix"],               c: "#e50914" },
-  { name: "Prime Video", key: "prime-video", id: "amazon",                     match: ["prime video", "amazon"], c: "#1a98ff" },
-  { name: "Apple TV",    key: "apple-tv",    id: "com.apple.appletv",          match: ["apple tv"],              c: "#c9ccd4" },
-  { name: "YouTube",     key: "youtube",     id: "youtube.leanback.v4",        match: ["youtube"],               c: "#ff3b30", not: ["kids", "music", "tv"] },
-  { name: "BBC iPlayer", key: "bbc-iplayer", id: "bbc.iplayer.3.0",            match: ["iplayer"],               c: "#ff4fa3" },
-  { name: "NOW",         key: "now",         id: "com.nowtv.nowtv",            match: ["=now", "now tv", "nowtv"], c: "#00c2a8" },
-  { name: "Disney+",     key: "disney-plus", id: "com.disney.disneyplus-prod", match: ["disney"],                c: "#3d6bff" },
-  { name: "Peloton",     key: "peloton",     id: "com.onepeloton.callisto",    match: ["peloton"],               c: "#df1c2f" },
-  { name: "Channel 4",   key: "channel-4",   id: "channel4",                   match: ["channel 4", "channel4"], c: "#9fe03a" },
-  { name: "Crunchyroll", key: "crunchyroll", id: "crunchyroll",                match: ["crunchyroll"],           c: "#ff7a1a" }
+  { name: "Netflix",     key: "netflix",     id: "netflix",                    match: ["netflix"],               c: "#e50914", f: "#b1060f" },
+  { name: "Prime Video", key: "prime-video", id: "amazon",                     match: ["prime video", "amazon"], c: "#1a98ff", f: "#0f6fcf", z: 1.3 },
+  { name: "Apple TV",    key: "apple-tv",    id: "com.apple.appletv",          match: ["apple tv"],              c: "#c9ccd4", f: "#3a3b40", z: 1.1 },
+  { name: "YouTube",     key: "youtube",     id: "youtube.leanback.v4",        match: ["youtube"],               c: "#ff3b30", f: "#cc0000", not: ["kids", "music", "tv"] },
+  { name: "BBC iPlayer", key: "bbc-iplayer", id: "bbc.iplayer.3.0",            match: ["iplayer"],               c: "#ff4fa3", f: "#c8256f" },
+  { name: "NOW",         key: "now",         id: "com.nowtv.nowtv",            match: ["=now", "now tv", "nowtv"], c: "#00c2a8", f: "#00806f", z: 2.05 },
+  { name: "Disney+",     key: "disney-plus", id: "com.disney.disneyplus-prod", match: ["disney"],                c: "#3d6bff", f: "#1238b4", z: 1.35 },
+  { name: "Peloton",     key: "peloton",     id: "com.onepeloton.callisto",    match: ["peloton"],               c: "#df1c2f", f: "#a8101f" },
+  { name: "Channel 4",   key: "channel-4",   id: "channel4",                   match: ["channel 4", "channel4"], c: "#9fe03a", f: "#3f7a12" },
+  { name: "Crunchyroll", key: "crunchyroll", id: "crunchyroll",                match: ["crunchyroll"],           c: "#ff7a1a", f: "#d9560b" }
 ];
 var PLACE = "Tynemouth", LAT = 55.0179, LON = -1.4254;
 var IDLE_MS = 2 * 60 * 1000;              // ambient mode after 2 minutes idle
@@ -67,7 +67,7 @@ root.innerHTML =
   '      <div class="panel" id="panel"></div>' +
   '    </div>' +
   '    <div class="apps"><div class="row primary" id="row1"></div><div class="row secondary" id="row2"></div></div>' +
-  '    <div class="hint">Press 1 to 0 to jump to an app · Blue button: ambient now · Red button: diagnostics</div>' +
+  '    <div class="hint"><b>1</b> to <b>0</b> open an app<i></i><b class="k blue"></b> photo mode<i></i><b class="k red"></b> diagnostics</div>' +
   '  </div>' +
   '  <div id="toast"></div>' +
   '  <div id="ambient">' +
@@ -159,6 +159,8 @@ function setIcon(app, src, bg, from) {
   img.onload = function () {
     d.iconStatus = "loaded (" + img.naturalWidth + "x" + img.naturalHeight + ")";
     el.classList.add("has-icon");
+    el.classList.toggle("mono", /\/logo-/.test(src));      // official logos, shown in white
+    el.classList.toggle("tv-icon", from === "TV");
     if (bg) el.style.setProperty("--icon-bg", bg);
     var old = el.querySelector(".logo"); if (old) old.parentNode.removeChild(old);
     img.className = "logo";
@@ -192,6 +194,8 @@ APPS.forEach(function (app, i) {
   var el = document.createElement("div");
   el.className = "tile";
   el.style.setProperty("--c", app.c);
+  el.style.setProperty("--f", app.f || app.c);
+  el.style.setProperty("--z", app.z || 1);         // optical size of the logo
   el.innerHTML = '<span class="num">' + (i < 9 ? i + 1 : "0") + '</span><span class="name">' + esc(app.name) + '</span>';
   el.addEventListener("mouseenter", function () { setFocus(i); });
   el.addEventListener("click", function () { setFocus(i); launch(app); });
@@ -274,13 +278,14 @@ function loadWeather() {
   fetch(url).then(function (r) { return r.json(); }).then(function (j) {
     var c = j.current, d = j.daily, info = wInfo(c.weather_code, c.is_day);
     var t = Math.round(c.temperature_2m);
+    $("wIcon").parentNode.style.display = "";
     $("wIcon").textContent = info[0];
     $("wTemp").textContent = t + "°";
     $("wDesc").textContent = info[1] + " · H " + Math.round(d.temperature_2m_max[0]) + "° L " +
       Math.round(d.temperature_2m_min[0]) + "° · " + d.precipitation_probability_max[0] + "% rain · " + Math.round(c.wind_speed_10m) + " mph";
     lastWeather = t + "° " + info[1].toLowerCase();
   }).catch(function () {
-    if (!lastWeather) $("wDesc").textContent = "Weather unavailable right now";
+    if (!lastWeather) { $("wDesc").textContent = "Weather unavailable right now"; $("wIcon").parentNode.style.display = "none"; }
   });
 }
 
@@ -293,7 +298,7 @@ function toast(msg) {
 }
 
 /* ---------- Photos: a crossfading slideshow used in two places ---------- */
-function Slideshow(el, seconds, kenBurns) {
+function Slideshow(el, seconds, kenBurns, alwaysFill) {
   var layers = [0, 1].map(function () {
     var L = document.createElement("div"); L.className = "ph-layer";
     L.innerHTML = '<div class="ph-bg"></div><img class="ph-fg" alt="">';
@@ -310,7 +315,7 @@ function Slideshow(el, seconds, kenBurns) {
       var ratio = pre.naturalWidth / pre.naturalHeight;
       next.querySelector(".ph-bg").style.backgroundImage = "url('" + src + "')";
       fg.src = src;
-      fg.className = "ph-fg " + (ratio > 1.45 && ratio < 1.95 ? "cover" : "contain");
+      fg.className = "ph-fg " + (alwaysFill || (ratio > 1.45 && ratio < 1.95) ? "cover" : "contain");
       if (kenBurns) { next.classList.remove("kb", "kb1", "kb2"); void next.offsetWidth; next.classList.add("kb", Math.random() < .5 ? "kb1" : "kb2"); }
       next.classList.add("on"); layers[cur].classList.remove("on");
       cur = 1 - cur;
@@ -323,7 +328,7 @@ function Slideshow(el, seconds, kenBurns) {
     stop: function () { clearInterval(timer); timer = null; }
   };
 }
-var panelShow = Slideshow($("panel"), PANEL_PHOTO_SECONDS, false);
+var panelShow = Slideshow($("panel"), PANEL_PHOTO_SECONDS, false, true);   // panel: always fill and crop
 var ambShow = Slideshow($("amb-photos"), AMBIENT_PHOTO_SECONDS, true);
 if (PHOTOS.length) $("ambient").classList.add("has-photos");
 

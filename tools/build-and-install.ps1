@@ -75,8 +75,15 @@ function Build-And-Install {
   }
 
   Say 'Preparing photos'
+  $inbox = Join-Path $Root 'photos-inbox'
+  # A zip downloaded from a Google Photos album can be dropped straight in
+  Get-ChildItem $inbox -Filter *.zip -File | ForEach-Object {
+    Expand-Archive $_.FullName -DestinationPath $inbox -Force
+    Remove-Item $_.FullName
+    Ok "Unpacked $($_.Name)"
+  }
   $exts = '.jpg', '.jpeg', '.png', '.heic', '.heif', '.bmp', '.tif', '.tiff', '.webp'
-  $files = @(Get-ChildItem (Join-Path $Root 'photos-inbox') -File | Where-Object { $exts -contains $_.Extension.ToLower() } | Sort-Object Name)
+  $files = @(Get-ChildItem $inbox -File -Recurse | Where-Object { $exts -contains $_.Extension.ToLower() } | Sort-Object FullName)
   $list = @(); $n = 0; $skipped = 0
   foreach ($f in $files) {
     $name = 'p{0:D3}.jpg' -f ($n + 1)
@@ -104,8 +111,36 @@ function Build-And-Install {
     Copy-Item $_.FullName "$App\icons\$dst"
     $iconMap[$key] = "icons/$dst"
   }
-  [IO.File]::WriteAllText("$App\icons\list.js", 'window.TVHOME_ICONS = ' + (ConvertTo-Json -InputObject $iconMap -Compress) + ';')
   if ($iconMap.Count) { Ok "$($iconMap.Count) icons of your own added" }
+
+  Say 'Getting the official app logos'
+  # Downloaded here and bundled into the TV app only, never stored on GitHub.
+  # Each file is checked against a pinned fingerprint before it is used.
+  $sources = Get-Content (Join-Path $PSScriptRoot 'logo-sources.json') -Raw | ConvertFrom-Json
+  $cache = Join-Path $Root 'logo-cache'
+  New-Item -ItemType Directory -Force -Path $cache | Out-Null
+  $logos = 0
+  foreach ($p in $sources.logos.PSObject.Properties) {
+    $key = $p.Name; $want = "$($p.Value.sha256)".ToLower()
+    if ($iconMap.ContainsKey($key)) { continue }   # your own icon wins
+    $file = Join-Path $cache "$key.svg"
+    if (-not (Test-Path $file)) {
+      try { Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 -UserAgent 'TVHomeBuild/1.0 (personal use)' -Uri $p.Value.url -OutFile $file }
+      catch { Warn "Could not download the $key logo this time (the tile shows its name instead)"; continue }
+    }
+    $got = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
+    $txt = [IO.File]::ReadAllText($file)
+    $bad = $txt -notmatch '<svg' -or $txt -match '<script|javascript:|foreignObject'
+    if ($bad -or ($want -and $got -ne $want)) {
+      Warn "The $key logo was not the expected file, so it was skipped"
+      Remove-Item $file -Force; continue
+    }
+    Copy-Item $file "$App\icons\logo-$key.svg"
+    $iconMap[$key] = "icons/logo-$key.svg"
+    $logos++
+  }
+  Ok "$logos app logos ready"
+  [IO.File]::WriteAllText("$App\icons\list.js", 'window.TVHOME_ICONS = ' + (ConvertTo-Json -InputObject $iconMap -Compress) + ';')
 
   Say 'Packaging the app'
   ares-package $App -o $Out -n

@@ -1,0 +1,45 @@
+{
+  "_about": "Official app logos, downloaded on the PC at build time and bundled into the TV app only (never stored in this repo). sha256 pins each file; a mismatch is skipped.",
+  "logos": {
+    "netflix": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/netflix.svg",
+      "sha256": "67dbc495988bd5667a09ed4f56e14db4070a44c7a74e297b146c229f70fd6f6e"
+    },
+    "primevideo": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Prime_Video_logo_%282024%29.svg",
+      "sha256": "eaf50f81d01788ae66eed2440f5887e2b5a7b62484c5cc550e760030b120cf96"
+    },
+    "appletv": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/appletv.svg",
+      "sha256": "49b3f33707b7487f43dbaa0bcc364a0a57fc4dd46caa575b580220323b152ea7"
+    },
+    "youtube": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/youtube.svg",
+      "sha256": "5038808acbbc4e6edda16cbeb1cc6dec80e4e4ee4e227e039c41229fa222aa8c"
+    },
+    "bbciplayer": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/BBC_iPlayer_%282021%29.svg",
+      "sha256": ""
+    },
+    "now": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/now.svg",
+      "sha256": "bcffe72bc6cc06123c6e2b736fb7c2d2ff432025ebd014118702b5b670d17a85"
+    },
+    "disneyplus": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg",
+      "sha256": "ad0ea07cb6627c268dae721d9647019e6e3ce1b51c8f4ba8ec8ddf4618546140"
+    },
+    "peloton": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/peloton.svg",
+      "sha256": "b966822d24effd8bb11cdd2df445f1daf61011e0ac51b80a3a150892283c494c"
+    },
+    "channel4": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/channel4.svg",
+      "sha256": "cb7205ad42186cf48bb30e350753d0323e1f4efd03a33749c7e17e7868d4978a"
+    },
+    "crunchyroll": {
+      "url": "https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/crunchyroll.svg",
+      "sha256": "3b9c3d87339e18ec09f25e0c3eaffdc5ad4630df3d108fcd907e1b64c4cd13ea"
+    }
+  }
+}

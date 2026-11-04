@@ -19,8 +19,10 @@ What changed and how each risk is handled.
    to code; its only write permission is to keep its own schedule switched on.
 4. **Key Server.** The install script asks for it to be switched on just before installing and
    reminds you to switch it off afterwards.
-5. **Brand logos.** None are drawn or included. Tiles show the TV's own installed icons if webOS
-   allows it, otherwise icons you download yourself, which stay on the PC (`my-icons/`, not published).
+5. **Brand logos.** None are drawn by us or stored in this repo. `tools/logo-sources.json` lists where each
+   official logo file comes from (Simple Icons via jsDelivr at a pinned version, and Wikimedia Commons) with a
+   SHA-256 fingerprint. The build downloads them on the PC, rejects any file that does not match or that
+   contains script, and bundles them into the TV app only. Files in `my-icons/` override them.
 6. **Tools.** Only LG's official `@webos-tools/cli`, Git, and GitHub's own CLI (`gh`) are used.
    The workflow uses no third-party GitHub Actions.
 7. **Location.** The public code contains Tynemouth's town-level coordinates for the weather (no address).
